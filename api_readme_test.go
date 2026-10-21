@@ -127,3 +127,15 @@ func TestListLimit(t *testing.T) {
 		t.Fatalf("limit=25: got %d links, want 25", len(codes))
 	}
 }
+
+func TestNegativeExpiresInReturnsBadRequest(t *testing.T) {
+	srv := NewServer(t.TempDir() + "/links.json")
+	defer srv.store.Close()
+
+	body := `{"url": "https://go.dev", "expires_in": -10}`
+	rec := do(t, srv, "POST", "/api/links", body)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("POST /api/links with negative expires_in: got %d, want 400", rec.Code)
+	}
+}
+
