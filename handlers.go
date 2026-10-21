@@ -103,6 +103,11 @@ func (s *Server) createLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.ExpiresIn < 0 {
+		writeError(w, http.StatusBadRequest, "expires_in must be zero or a positive number.")
+		return
+	}
+
 	link := &Link{
 		URL:         target,
 		CreatedAt:   time.Now(),
