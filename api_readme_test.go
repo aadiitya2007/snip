@@ -127,3 +127,32 @@ func TestListLimit(t *testing.T) {
 		t.Fatalf("limit=25: got %d links, want 25", len(codes))
 	}
 }
+
+func TestListExcludesExpiredLinks(t *testing.T) {
+	srv := NewServer(t.TempDir() + "/links.json")
+	defer srv.store.Close()
+
+	create(t, srv, `{"url": "https://go.dev", "alias": "alive-link"}`)
+	create(t, srv, `{"url": "https://go.dev", "alias": "dead-link", "expires_in": 1}`)
+
+	time.Sleep(1100 * time.Millisecond)
+
+	codes := listCodes(t, srv, "/api/links")
+	for _, code := range codes {
+		if code == "dead-link" {
+			t.Fatalf("expected expired link to be excluded from /api/links, but found: %s", code)
+		}
+	}
+
+	foundAlive := false
+	for _, code := range codes {
+		if code == "alive-link" {
+			foundAlive = true
+			break
+		}
+	}
+	if !foundAlive {
+		t.Fatalf("expected active link to remain in /api/links")
+	}
+}
+
