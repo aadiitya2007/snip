@@ -167,3 +167,21 @@ func TestListExcludesExpiredLinks(t *testing.T) {
 	}
 }
 
+func TestListAllExpiredReturnsEmptyArrayNotNil(t *testing.T) {
+	srv := NewServer(t.TempDir() + "/links.json")
+	defer srv.store.Close()
+
+	create(t, srv, `{"url": "https://go.dev", "alias": "expired-only", "expires_in": 1}`)
+	time.Sleep(1100 * time.Millisecond)
+
+	rec := do(t, srv, "GET", "/api/links", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/links: got %d, want 200", rec.Code)
+	}
+
+	body := strings.TrimSpace(rec.Body.String())
+	if body != "[]" {
+		t.Fatalf("expected empty array [] when all links expired, got: %s", body)
+	}
+}
+

@@ -186,7 +186,7 @@ func (s *Server) deleteLink(w http.ResponseWriter, r *http.Request) {
 func (s *Server) listLinks(w http.ResponseWriter, r *http.Request) {
 	allLinks := s.store.List()
 	now := time.Now()
-	var links []*Link
+	links := make([]*Link, 0, len(allLinks))
 	for _, link := range allLinks {
 		if link.ExpiresAt == nil || now.Before(*link.ExpiresAt) {
 			links = append(links, link)
